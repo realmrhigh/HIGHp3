@@ -318,10 +318,11 @@ class MusicService : Service() {
                         return -1  // All tracks played and no repeat
                     }
                 }
-                var nextIndex: Int
-                do {
-                    nextIndex = (0 until trackList.size).random()
-                } while (playedTrackIndices.contains(nextIndex) && playedTrackIndices.size < trackList.size)
+                // Get list of unplayed track indices
+                val unplayedIndices = (0 until trackList.size).filter { !playedTrackIndices.contains(it) }
+                // unplayedIndices should never be empty here due to the check above,
+                // but we provide a fallback to handle any edge cases safely
+                val nextIndex = unplayedIndices.randomOrNull() ?: (0 until trackList.size).random()
                 playedTrackIndices.add(nextIndex)
                 nextIndex
             }
@@ -537,12 +538,17 @@ class MusicService : Service() {
     }
 
     fun seekTo(position: Int) {
-        mediaPlayer?.let {
+        mediaPlayer?.let { player ->
             if (currentTrack != null) {
-                val validPosition = position.coerceIn(0, it.duration)
-                it.seekTo(validPosition)
-                playbackPosition.postValue(it.currentPosition)
-                updatePlaybackState()
+                try {
+                    val maxDuration = player.duration
+                    val validPosition = position.coerceIn(0, maxDuration)
+                    player.seekTo(validPosition)
+                    playbackPosition.postValue(player.currentPosition)
+                    updatePlaybackState()
+                } catch (e: IllegalStateException) {
+                    Log.e("MusicService", "Cannot seek - player not in valid state", e)
+                }
             }
         }
     }
