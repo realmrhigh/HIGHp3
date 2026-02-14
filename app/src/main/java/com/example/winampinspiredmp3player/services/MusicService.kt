@@ -36,6 +36,12 @@ class MusicService : Service() {
         const val NOTIFICATION_ID = 1
     }
 
+    enum class RepeatMode {
+        NONE,
+        ALL,
+        ONE
+    }
+
     private var mediaPlayer: MediaPlayer? = null
     private val binder = MusicBinder()
     private lateinit var mediaSession: MediaSessionCompat
@@ -52,6 +58,13 @@ class MusicService : Service() {
         private set
     var currentTrack: Track? = null
         private set
+    
+    // Playback modes
+    var repeatMode: RepeatMode = RepeatMode.NONE
+        private set
+    var isShuffleEnabled: Boolean = false
+        private set
+    private val playedTrackIndices = mutableListOf<Int>()
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -266,9 +279,79 @@ class MusicService : Service() {
         this.trackList = tracks
         if (tracks.isNotEmpty()) {
             currentTrackIndex = -1
+            playedTrackIndices.clear()
             Log.d("MusicService", "Track list set with ${tracks.size} tracks.")
         } else {
             Log.d("MusicService", "Track list set to empty.")
+        }
+    }
+
+    fun toggleRepeatMode() {
+        repeatMode = when (repeatMode) {
+            RepeatMode.NONE -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.NONE
+        }
+        Log.d("MusicService", "Repeat mode changed to: $repeatMode")
+    }
+
+    fun toggleShuffle() {
+        isShuffleEnabled = !isShuffleEnabled
+        if (isShuffleEnabled) {
+            playedTrackIndices.clear()
+            if (currentTrackIndex >= 0) {
+                playedTrackIndices.add(currentTrackIndex)
+            }
+        }
+        Log.d("MusicService", "Shuffle ${if (isShuffleEnabled) "enabled" else "disabled"}")
+    }
+
+    private fun getNextTrackIndex(): Int {
+        if (trackList.isEmpty()) return -1
+
+        return when {
+            repeatMode == RepeatMode.ONE -> currentTrackIndex
+            isShuffleEnabled -> {
+                if (playedTrackIndices.size >= trackList.size) {
+                    playedTrackIndices.clear()
+                    if (repeatMode == RepeatMode.NONE) {
+                        return -1  // All tracks played and no repeat
+                    }
+                }
+                var nextIndex: Int
+                do {
+                    nextIndex = (0 until trackList.size).random()
+                } while (playedTrackIndices.contains(nextIndex) && playedTrackIndices.size < trackList.size)
+                playedTrackIndices.add(nextIndex)
+                nextIndex
+            }
+            else -> {
+                val nextIndex = currentTrackIndex + 1
+                when {
+                    nextIndex >= trackList.size && repeatMode == RepeatMode.ALL -> 0
+                    nextIndex >= trackList.size -> -1
+                    else -> nextIndex
+                }
+            }
+        }
+    }
+
+    private fun getPreviousTrackIndex(): Int {
+        if (trackList.isEmpty()) return -1
+
+        return when {
+            isShuffleEnabled && playedTrackIndices.size > 1 -> {
+                playedTrackIndices.removeAt(playedTrackIndices.lastIndex)
+                playedTrackIndices.last()
+            }
+            else -> {
+                val prevIndex = currentTrackIndex - 1
+                when {
+                    prevIndex < 0 && repeatMode == RepeatMode.ALL -> trackList.size - 1
+                    prevIndex < 0 -> -1
+                    else -> prevIndex
+                }
+            }
         }
     }
 
@@ -431,24 +514,25 @@ class MusicService : Service() {
     }
 
     fun playNextTrack() {
-        if (trackList.isNotEmpty()) {
-            val nextIndex = currentTrackIndex + 1
-            currentTrackIndex = if (nextIndex >= trackList.size) 0 else nextIndex
-            playTrackAtIndex(currentTrackIndex)
+        val nextIndex = getNextTrackIndex()
+        if (nextIndex >= 0) {
+            playTrackAtIndex(nextIndex)
         } else {
-            Log.d("MusicService", "Track list empty, cannot play next.")
-            stopTrack() // Stop if list is empty
+            Log.d("MusicService", "End of playlist reached.")
+            stopTrack()
         }
     }
 
     fun playPreviousTrack() {
-        if (trackList.isNotEmpty()) {
-            val prevIndex = currentTrackIndex - 1
-            currentTrackIndex = if (prevIndex < 0) trackList.size - 1 else prevIndex
-            playTrackAtIndex(currentTrackIndex)
+        val prevIndex = getPreviousTrackIndex()
+        if (prevIndex >= 0) {
+            playTrackAtIndex(prevIndex)
         } else {
-            Log.d("MusicService", "Track list empty, cannot play previous.")
-            stopTrack() // Stop if list is empty
+            Log.d("MusicService", "At beginning of playlist.")
+            // Restart current track if at the beginning
+            if (currentTrackIndex >= 0) {
+                playTrackAtIndex(currentTrackIndex)
+            }
         }
     }
 
