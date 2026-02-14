@@ -7,6 +7,9 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
@@ -33,10 +36,20 @@ class MusicService : Service() {
         const val NOTIFICATION_ID = 1
     }
 
+    enum class RepeatMode {
+        NONE,
+        ALL,
+        ONE
+    }
+
     private var mediaPlayer: MediaPlayer? = null
     private val binder = MusicBinder()
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var notificationManager: NotificationManagerCompat
+    private lateinit var audioManager: AudioManager
+    private var audioFocusRequest: AudioFocusRequest? = null
+    private var playbackDelayed = false
+    private var playbackNowAuthorized = false
 
 
     // Member variables
@@ -45,6 +58,13 @@ class MusicService : Service() {
         private set
     var currentTrack: Track? = null
         private set
+    
+    // Playback modes
+    var repeatMode: RepeatMode = RepeatMode.NONE
+        private set
+    var isShuffleEnabled: Boolean = false
+        private set
+    private val playedTrackIndices = mutableListOf<Int>()
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -113,6 +133,42 @@ class MusicService : Service() {
         }
     }
 
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                // Resume playback or raise volume
+                if (playbackDelayed || playbackNowAuthorized) {
+                    mediaPlayer?.let {
+                        if (!it.isPlaying && currentTrack != null) {
+                            it.start()
+                            isPlayingState.postValue(true)
+                            handler.post(updateProgressRunnable)
+                        }
+                        it.setVolume(1.0f, 1.0f)
+                    }
+                    playbackDelayed = false
+                    playbackNowAuthorized = false
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                // Stop playback and abandon audio focus
+                pauseTrack()
+                playbackNowAuthorized = false
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                // Pause playback
+                if (isPlaying()) {
+                    pauseTrack()
+                    playbackNowAuthorized = true
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                // Lower the volume
+                mediaPlayer?.setVolume(0.3f, 0.3f)
+            }
+        }
+    }
+
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
@@ -121,6 +177,7 @@ class MusicService : Service() {
     override fun onCreate() {
         super.onCreate()
         notificationManager = NotificationManagerCompat.from(this)
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         createNotificationChannel()
 
         mediaPlayer = MediaPlayer()
@@ -222,14 +279,129 @@ class MusicService : Service() {
         this.trackList = tracks
         if (tracks.isNotEmpty()) {
             currentTrackIndex = -1
+            playedTrackIndices.clear()
             Log.d("MusicService", "Track list set with ${tracks.size} tracks.")
         } else {
             Log.d("MusicService", "Track list set to empty.")
         }
     }
 
+    fun toggleRepeatMode() {
+        repeatMode = when (repeatMode) {
+            RepeatMode.NONE -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.NONE
+        }
+        Log.d("MusicService", "Repeat mode changed to: $repeatMode")
+    }
+
+    fun toggleShuffle() {
+        isShuffleEnabled = !isShuffleEnabled
+        if (isShuffleEnabled) {
+            playedTrackIndices.clear()
+            if (currentTrackIndex >= 0) {
+                playedTrackIndices.add(currentTrackIndex)
+            }
+        }
+        Log.d("MusicService", "Shuffle ${if (isShuffleEnabled) "enabled" else "disabled"}")
+    }
+
+    private fun getNextTrackIndex(): Int {
+        if (trackList.isEmpty()) return -1
+
+        return when {
+            repeatMode == RepeatMode.ONE -> currentTrackIndex
+            isShuffleEnabled -> {
+                if (playedTrackIndices.size >= trackList.size) {
+                    playedTrackIndices.clear()
+                    if (repeatMode == RepeatMode.NONE) {
+                        return -1  // All tracks played and no repeat
+                    }
+                }
+                // Get list of unplayed track indices
+                val unplayedIndices = (0 until trackList.size).filter { !playedTrackIndices.contains(it) }
+                // unplayedIndices should never be empty here due to the check above,
+                // but we provide a fallback to handle any edge cases safely
+                val nextIndex = unplayedIndices.randomOrNull() ?: (0 until trackList.size).random()
+                playedTrackIndices.add(nextIndex)
+                nextIndex
+            }
+            else -> {
+                val nextIndex = currentTrackIndex + 1
+                when {
+                    nextIndex >= trackList.size && repeatMode == RepeatMode.ALL -> 0
+                    nextIndex >= trackList.size -> -1
+                    else -> nextIndex
+                }
+            }
+        }
+    }
+
+    private fun getPreviousTrackIndex(): Int {
+        if (trackList.isEmpty()) return -1
+
+        return when {
+            isShuffleEnabled && playedTrackIndices.size > 1 -> {
+                playedTrackIndices.removeAt(playedTrackIndices.lastIndex)
+                playedTrackIndices.last()
+            }
+            else -> {
+                val prevIndex = currentTrackIndex - 1
+                when {
+                    prevIndex < 0 && repeatMode == RepeatMode.ALL -> trackList.size - 1
+                    prevIndex < 0 -> -1
+                    else -> prevIndex
+                }
+            }
+        }
+    }
+
+    private fun requestAudioFocus(): Boolean {
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+            
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(audioAttributes)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build()
+            
+            audioManager.requestAudioFocus(audioFocusRequest!!)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                audioFocusChangeListener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+        }
+        
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    private fun abandonAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let {
+                audioManager.abandonAudioFocusRequest(it)
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.abandonAudioFocus(audioFocusChangeListener)
+        }
+    }
+
     private fun playTrack(trackUri: Uri) {
         Log.d("MusicService", "playTrack called with URI: $trackUri")
+        
+        // Request audio focus before playing
+        if (!requestAudioFocus()) {
+            Log.w("MusicService", "Failed to gain audio focus")
+            playbackDelayed = true
+            return
+        }
+        
         try {
             mediaPlayer?.apply {
                 if (isPlaying) {
@@ -334,6 +506,7 @@ class MusicService : Service() {
         currentTrackDuration.postValue(0)
         updatePlaybackState()
         updateMediaMetadata()
+        abandonAudioFocus()
         stopForeground(true) // Remove notification
     }
 
@@ -342,37 +515,40 @@ class MusicService : Service() {
     }
 
     fun playNextTrack() {
-        if (trackList.isNotEmpty()) {
-            currentTrackIndex++
-            if (currentTrackIndex >= trackList.size) {
-                currentTrackIndex = 0
-            }
-            playTrackAtIndex(currentTrackIndex)
+        val nextIndex = getNextTrackIndex()
+        if (nextIndex >= 0) {
+            playTrackAtIndex(nextIndex)
         } else {
-            Log.d("MusicService", "Track list empty, cannot play next.")
-            stopTrack() // Stop if list is empty
+            Log.d("MusicService", "End of playlist reached.")
+            stopTrack()
         }
     }
 
     fun playPreviousTrack() {
-        if (trackList.isNotEmpty()) {
-            currentTrackIndex--
-            if (currentTrackIndex < 0) {
-                currentTrackIndex = trackList.size - 1
-            }
-            playTrackAtIndex(currentTrackIndex)
+        val prevIndex = getPreviousTrackIndex()
+        if (prevIndex >= 0) {
+            playTrackAtIndex(prevIndex)
         } else {
-            Log.d("MusicService", "Track list empty, cannot play previous.")
-            stopTrack() // Stop if list is empty
+            Log.d("MusicService", "At beginning of playlist.")
+            // Restart current track if at the beginning
+            if (currentTrackIndex >= 0) {
+                playTrackAtIndex(currentTrackIndex)
+            }
         }
     }
 
     fun seekTo(position: Int) {
-        mediaPlayer?.let {
+        mediaPlayer?.let { player ->
             if (currentTrack != null) {
-                it.seekTo(position)
-                playbackPosition.postValue(it.currentPosition)
-                updatePlaybackState()
+                try {
+                    val maxDuration = player.duration
+                    val validPosition = position.coerceIn(0, maxDuration)
+                    player.seekTo(validPosition)
+                    playbackPosition.postValue(player.currentPosition)
+                    updatePlaybackState()
+                } catch (e: IllegalStateException) {
+                    Log.e("MusicService", "Cannot seek - player not in valid state", e)
+                }
             }
         }
     }
@@ -446,6 +622,7 @@ class MusicService : Service() {
         super.onDestroy()
         Log.d("MusicService", "Service Destroyed, MediaPlayer and MediaSession Released")
         handler.removeCallbacks(updateProgressRunnable)
+        abandonAudioFocus()
         mediaPlayer?.release()
         mediaPlayer = null
         mediaSession.release()

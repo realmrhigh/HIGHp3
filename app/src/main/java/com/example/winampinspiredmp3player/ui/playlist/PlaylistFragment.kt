@@ -42,10 +42,16 @@ class PlaylistFragment : Fragment() {
             val binder = service as MusicService.MusicBinder
             musicService = binder.getService()
             isBound = true
+            
+            // Observe currently playing track to update UI
+            musicService?.currentPlayingTrack?.observe(viewLifecycleOwner) { track ->
+                playlistAdapter.setSelectedTrack(track?.uri?.toString())
+            }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             Log.d("PlaylistFragment", "Service Disconnected")
+            musicService?.currentPlayingTrack?.removeObservers(viewLifecycleOwner)
             musicService = null
             isBound = false
         }
