@@ -7,6 +7,9 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
@@ -37,6 +40,10 @@ class MusicService : Service() {
     private val binder = MusicBinder()
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var notificationManager: NotificationManagerCompat
+    private lateinit var audioManager: AudioManager
+    private var audioFocusRequest: AudioFocusRequest? = null
+    private var playbackDelayed = false
+    private var playbackNowAuthorized = false
 
 
     // Member variables
@@ -113,6 +120,42 @@ class MusicService : Service() {
         }
     }
 
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                // Resume playback or raise volume
+                if (playbackDelayed || playbackNowAuthorized) {
+                    mediaPlayer?.let {
+                        if (!it.isPlaying && currentTrack != null) {
+                            it.start()
+                            isPlayingState.postValue(true)
+                            handler.post(updateProgressRunnable)
+                        }
+                        it.setVolume(1.0f, 1.0f)
+                    }
+                    playbackDelayed = false
+                    playbackNowAuthorized = false
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                // Stop playback and abandon audio focus
+                pauseTrack()
+                playbackNowAuthorized = false
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                // Pause playback
+                if (isPlaying()) {
+                    pauseTrack()
+                    playbackNowAuthorized = true
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                // Lower the volume
+                mediaPlayer?.setVolume(0.3f, 0.3f)
+            }
+        }
+    }
+
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
@@ -121,6 +164,7 @@ class MusicService : Service() {
     override fun onCreate() {
         super.onCreate()
         notificationManager = NotificationManagerCompat.from(this)
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         createNotificationChannel()
 
         mediaPlayer = MediaPlayer()
@@ -228,8 +272,52 @@ class MusicService : Service() {
         }
     }
 
+    private fun requestAudioFocus(): Boolean {
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+            
+            audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(audioAttributes)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build()
+            
+            audioManager.requestAudioFocus(audioFocusRequest!!)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                audioFocusChangeListener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+        }
+        
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    private fun abandonAudioFocus() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let {
+                audioManager.abandonAudioFocusRequest(it)
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.abandonAudioFocus(audioFocusChangeListener)
+        }
+    }
+
     private fun playTrack(trackUri: Uri) {
         Log.d("MusicService", "playTrack called with URI: $trackUri")
+        
+        // Request audio focus before playing
+        if (!requestAudioFocus()) {
+            Log.w("MusicService", "Failed to gain audio focus")
+            playbackDelayed = true
+            return
+        }
+        
         try {
             mediaPlayer?.apply {
                 if (isPlaying) {
@@ -334,6 +422,7 @@ class MusicService : Service() {
         currentTrackDuration.postValue(0)
         updatePlaybackState()
         updateMediaMetadata()
+        abandonAudioFocus()
         stopForeground(true) // Remove notification
     }
 
@@ -343,10 +432,8 @@ class MusicService : Service() {
 
     fun playNextTrack() {
         if (trackList.isNotEmpty()) {
-            currentTrackIndex++
-            if (currentTrackIndex >= trackList.size) {
-                currentTrackIndex = 0
-            }
+            val nextIndex = currentTrackIndex + 1
+            currentTrackIndex = if (nextIndex >= trackList.size) 0 else nextIndex
             playTrackAtIndex(currentTrackIndex)
         } else {
             Log.d("MusicService", "Track list empty, cannot play next.")
@@ -356,10 +443,8 @@ class MusicService : Service() {
 
     fun playPreviousTrack() {
         if (trackList.isNotEmpty()) {
-            currentTrackIndex--
-            if (currentTrackIndex < 0) {
-                currentTrackIndex = trackList.size - 1
-            }
+            val prevIndex = currentTrackIndex - 1
+            currentTrackIndex = if (prevIndex < 0) trackList.size - 1 else prevIndex
             playTrackAtIndex(currentTrackIndex)
         } else {
             Log.d("MusicService", "Track list empty, cannot play previous.")
@@ -370,7 +455,8 @@ class MusicService : Service() {
     fun seekTo(position: Int) {
         mediaPlayer?.let {
             if (currentTrack != null) {
-                it.seekTo(position)
+                val validPosition = position.coerceIn(0, it.duration)
+                it.seekTo(validPosition)
                 playbackPosition.postValue(it.currentPosition)
                 updatePlaybackState()
             }
@@ -446,6 +532,7 @@ class MusicService : Service() {
         super.onDestroy()
         Log.d("MusicService", "Service Destroyed, MediaPlayer and MediaSession Released")
         handler.removeCallbacks(updateProgressRunnable)
+        abandonAudioFocus()
         mediaPlayer?.release()
         mediaPlayer = null
         mediaSession.release()
