@@ -221,6 +221,12 @@ class MusicService : Service() {
         return binder
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("MusicService", "onStartCommand called")
+        // Keep service alive even if all clients unbind
+        return START_STICKY
+    }
+
     fun setTrackList(tracks: List<Track>) {
         this.trackList = tracks
         if (tracks.isNotEmpty()) {
@@ -318,6 +324,19 @@ class MusicService : Service() {
                 updatePlaybackState() // This will trigger notification update
                 stopForegroundCompat(false) // Keep notification, but service is not foreground
                 // notificationManager.notify(NOTIFICATION_ID, buildNotification()) // updatePlaybackState should handle this
+            }
+        }
+    }
+
+    fun resumeTrack() {
+        mediaPlayer?.let {
+            if (!it.isPlaying && currentTrack != null) {
+                Log.d("MusicService", "resumeTrack called")
+                it.start()
+                isPlayingState.postValue(true)
+                handler.post(updateProgressRunnable)
+                updatePlaybackState()
+                startForegroundIfAllowed(buildNotification())
             }
         }
     }

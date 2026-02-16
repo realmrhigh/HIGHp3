@@ -73,7 +73,7 @@ class PlayerFragment : Fragment() {
                     musicService!!.pauseTrack()
                 } else {
                     if (musicService!!.currentTrack != null) {
-                        musicService!!.playTrackAtIndex(musicService!!.currentTrackIndex)
+                        musicService!!.resumeTrack()
                     } else {
                         Log.d("PlayerFragment", "Play clicked, but no track is loaded/selected.")
                         // Optionally play first track from list if available

@@ -142,11 +142,22 @@ class VisualizerFragment : Fragment() {
             binding.videoViewVisualizer.pause()
             Log.d("VisualizerFragment", "Video explicitly paused in onResume as music is not playing.")
         }
+        
+        // Initialize visualizer only when this fragment becomes visible (onResume)
+        if (isBound && musicService != null && visualizer == null) {
+            val sessionId = musicService?.audioSessionId?.value ?: 0
+            if (sessionId > 0) {
+                setupVisualizer(sessionId)
+                Log.d("VisualizerFragment", "Visualizer initialized in onResume with sessionId: $sessionId")
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
         Log.d("VisualizerFragment", "onPause called.")
+        // Release visualizer when fragment is not visible to save battery/resources
+        releaseVisualizer()
         // It's generally good practice to pause video when fragment is not visible.
         // The LiveData observer will also pause it if music stops.
         if (binding.videoViewVisualizer.isPlaying) {

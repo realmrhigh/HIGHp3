@@ -1,6 +1,7 @@
 package com.example.winampinspiredmp3player
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.example.winampinspiredmp3player.ui.ViewPagerAdapter
+import com.example.winampinspiredmp3player.services.MusicService
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.example.winampinspiredmp3player.databinding.ActivityMainBinding // Import ViewBinding class
@@ -23,6 +25,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater) // Initialize binding
         setContentView(binding.root) // Set content view to binding.root
+
+        // Start the MusicService to ensure it stays alive in background
+        startService(Intent(this, MusicService::class.java))
 
         // val viewPager: ViewPager2 = findViewById(R.id.view_pager) // Original
         // val tabLayout: TabLayout = findViewById(R.id.tab_layout) // Original
