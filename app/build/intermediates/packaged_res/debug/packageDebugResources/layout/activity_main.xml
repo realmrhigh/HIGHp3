@@ -4,24 +4,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/winamp_background_dark"
     tools:context=".MainActivity">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
+        android:background="@color/surface_dark"
+        android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/winamp_background_dark"
-        app:tabIndicatorColor="@color/winamp_text_green"
+        app:tabIndicatorColor="@color/accent_primary"
+        app:tabIndicatorHeight="3dp"
+        app:tabIndicatorFullWidth="false"
         app:tabTextColor="@color/winamp_tab_unselected_gray"
-        app:tabSelectedTextColor="@color/winamp_text_green" />
+        app:tabSelectedTextColor="@color/text_primary"
+        app:tabTextAppearance="@style/TabTextStyle"
+        app:tabRippleColor="@color/accent_primary"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/winamp_background_dark"
         app:layout_constraintTop_toBottomOf="@id/tab_layout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

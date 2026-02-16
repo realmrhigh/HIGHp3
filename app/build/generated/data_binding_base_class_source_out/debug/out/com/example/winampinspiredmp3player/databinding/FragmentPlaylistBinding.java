@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -24,13 +25,22 @@ public final class FragmentPlaylistBinding implements ViewBinding {
   public final ImageButton btnScanMusic;
 
   @NonNull
+  public final View dividerScan;
+
+  @NonNull
   public final RecyclerView rvPlaylist;
 
+  @NonNull
+  public final LinearLayout scanBar;
+
   private FragmentPlaylistBinding(@NonNull ConstraintLayout rootView,
-      @NonNull ImageButton btnScanMusic, @NonNull RecyclerView rvPlaylist) {
+      @NonNull ImageButton btnScanMusic, @NonNull View dividerScan,
+      @NonNull RecyclerView rvPlaylist, @NonNull LinearLayout scanBar) {
     this.rootView = rootView;
     this.btnScanMusic = btnScanMusic;
+    this.dividerScan = dividerScan;
     this.rvPlaylist = rvPlaylist;
+    this.scanBar = scanBar;
   }
 
   @Override
@@ -66,13 +76,26 @@ public final class FragmentPlaylistBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.divider_scan;
+      View dividerScan = ViewBindings.findChildViewById(rootView, id);
+      if (dividerScan == null) {
+        break missingId;
+      }
+
       id = R.id.rv_playlist;
       RecyclerView rvPlaylist = ViewBindings.findChildViewById(rootView, id);
       if (rvPlaylist == null) {
         break missingId;
       }
 
-      return new FragmentPlaylistBinding((ConstraintLayout) rootView, btnScanMusic, rvPlaylist);
+      id = R.id.scan_bar;
+      LinearLayout scanBar = ViewBindings.findChildViewById(rootView, id);
+      if (scanBar == null) {
+        break missingId;
+      }
+
+      return new FragmentPlaylistBinding((ConstraintLayout) rootView, btnScanMusic, dividerScan,
+          rvPlaylist, scanBar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

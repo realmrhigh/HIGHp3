@@ -214,8 +214,8 @@ class VisualizerFragment : Fragment() {
                             val bass = calculateBassIntensity(fft)
                             val target = (bass / 1800f).coerceIn(0f, 1f)
                             smoothedBass = smoothedBass * 0.8f + target * 0.2f
-                            val scale = 1f + 0.12f * smoothedBass
-                            val alpha = 0.14f + 0.36f * smoothedBass
+                            val scale = 1f + 0.25f * smoothedBass
+                            val alpha = 0.35f + 0.55f * smoothedBass
                             binding.pulseGlow.post {
                                 binding.pulseGlow.scaleX = scale
                                 binding.pulseGlow.scaleY = scale
@@ -248,7 +248,7 @@ class VisualizerFragment : Fragment() {
             binding.pulseGlow.post {
                 binding.pulseGlow.scaleX = 1f
                 binding.pulseGlow.scaleY = 1f
-                binding.pulseGlow.alpha = 0.18f
+                binding.pulseGlow.alpha = 0.45f
             }
         }
     }

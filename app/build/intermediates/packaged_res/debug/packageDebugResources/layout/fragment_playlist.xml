@@ -4,32 +4,65 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/winamp_playlist_background"
+    android:background="@color/winamp_background_dark"
     tools:context=".ui.playlist.PlaylistFragment">
 
-    <ImageButton
-        android:id="@+id/btn_scan_music"
-        android:layout_width="wrap_content"
+    <!-- Scan button bar -->
+    <LinearLayout
+        android:id="@+id/scan_bar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:src="@drawable/eject"
-        android:background="@android:color/transparent"
-        android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:padding="8dp"
-        android:contentDescription="Scan for Music"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@color/surface_dark"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btn_scan_music"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/eject"
+            android:background="@drawable/control_button_bg"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Scan for Music"
+            app:tint="@color/accent_secondary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SCAN MUSIC"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.1"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/divider_scan"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/divider"
+        app:layout_constraintTop_toBottomOf="@id/scan_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_playlist"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/btn_scan_music"
+        android:background="@color/winamp_background_dark"
+        android:clipToPadding="false"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        app:layout_constraintTop_toBottomOf="@id/divider_scan"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/winamp_playlist_background"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

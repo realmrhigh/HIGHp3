@@ -1347,6 +1347,9 @@ color abc_tint_spinner
 color abc_tint_switch_track
 color accent_material_dark
 color accent_material_light
+color accent_primary
+color accent_primary_variant
+color accent_secondary
 color androidx_core_ripple_material_light
 color androidx_core_secondary_text_default_material_light
 color background_floating_material_dark
@@ -1366,6 +1369,7 @@ color cardview_dark_background
 color cardview_light_background
 color cardview_shadow_end_color
 color cardview_shadow_start_color
+color control_button_bg
 color design_bottom_navigation_shadow_color
 color design_box_stroke_color
 color design_dark_default_color_background
@@ -1408,6 +1412,7 @@ color dim_foreground_disabled_material_dark
 color dim_foreground_disabled_material_light
 color dim_foreground_material_dark
 color dim_foreground_material_light
+color divider
 color error_color_material_dark
 color error_color_material_light
 color foreground_material_dark
@@ -2058,6 +2063,9 @@ color secondary_text_default_material_dark
 color secondary_text_default_material_light
 color secondary_text_disabled_material_dark
 color secondary_text_disabled_material_light
+color seekbar_track
+color surface_dark
+color surface_elevated
 color switch_thumb_disabled_material_dark
 color switch_thumb_disabled_material_light
 color switch_thumb_material_dark
@@ -2066,6 +2074,8 @@ color switch_thumb_normal_material_dark
 color switch_thumb_normal_material_light
 color teal_200
 color teal_700
+color text_primary
+color text_secondary
 color tooltip_background_dark
 color tooltip_background_light
 color white
@@ -2953,6 +2963,8 @@ drawable abc_textfield_search_activated_mtrl_alpha
 drawable abc_textfield_search_default_mtrl_alpha
 drawable abc_textfield_search_material
 drawable abc_vector_test
+drawable album_art_glow
+drawable album_art_placeholder_bg
 drawable avd_hide_password
 drawable avd_show_password
 drawable back
@@ -2964,13 +2976,22 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable control_button_bg
+drawable control_button_play_bg
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
 drawable eject
+drawable ic_album_art_placeholder
 drawable ic_arrow_back_black_24
+drawable ic_btn_eject
+drawable ic_btn_next
+drawable ic_btn_pause
+drawable ic_btn_play
+drawable ic_btn_prev
+drawable ic_btn_stop
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
 drawable ic_keyboard_black_24dp
@@ -3071,8 +3092,10 @@ drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
 drawable visualizer_glow
+drawable visualizer_vignette
 drawable volsliderbar
 drawable volsliderthumb
+drawable volume_bar_bg
 drawable winamp_btn_pause
 drawable winamp_btn_play
 id ALT
@@ -3147,6 +3170,8 @@ id action_text
 id actions
 id activity_chooser_view_content
 id add
+id album_art_card
+id album_glow
 id alertTitle
 id aligned
 id all
@@ -3240,6 +3265,7 @@ id disableIntraAutoTransition
 id disablePostScroll
 id disableScroll
 id disjoint
+id divider_scan
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3310,11 +3336,14 @@ id invisible
 id inward
 id italic
 id item_touch_helper_previous_elevation
+id iv_album_art
+id iv_track_icon
 id jumpToEnd
 id jumpToStart
 id labeled
 id layout
 id layout_controls
+id layout_volume
 id left
 id leftToRight
 id legacy
@@ -3459,6 +3488,7 @@ id sawtooth
 id sb_track_progress
 id sb_volume_control
 id scale
+id scan_bar
 id screen
 id scroll
 id scrollIndicatorDown
@@ -4367,6 +4397,7 @@ style ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Day
 style ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Window_Fullscreen
 style ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Year
 style ShapeAppearanceOverlay_MaterialComponents_TextInputLayout_FilledBox
+style TabTextStyle
 style TextAppearance_AppCompat
 style TextAppearance_AppCompat_Body1
 style TextAppearance_AppCompat_Body2

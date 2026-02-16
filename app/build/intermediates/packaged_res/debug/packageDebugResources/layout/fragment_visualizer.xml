@@ -14,10 +14,17 @@
 
     <View
         android:id="@+id/pulse_glow"
-        android:layout_width="260dp"
-        android:layout_height="260dp"
+        android:layout_width="340dp"
+        android:layout_height="340dp"
         android:layout_gravity="center"
-        android:alpha="0.18"
+        android:alpha="0.45"
         android:background="@drawable/visualizer_glow" />
+
+    <!-- Subtle vignette overlay -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/visualizer_vignette"
+        android:alpha="0.4" />
 
 </FrameLayout>
