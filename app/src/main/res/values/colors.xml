@@ -19,4 +19,8 @@
     <color name="winamp_playlist_text_selected">#FFFFFF</color>
     <color name="winamp_playlist_item_selected_bg">#0000CD</color>
     <color name="winamp_border_black">#000000</color>
+
+    <!-- Visualizer Glow Colors -->
+    <color name="winamp_glow_green">#6600FF00</color>
+    <color name="winamp_glow_green_soft">#3300FF00</color>
 </resources>

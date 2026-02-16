@@ -53,6 +53,7 @@ class MusicService : Service() {
     val currentTrackDuration: MutableLiveData<Int> = MutableLiveData(0)
     val currentPlayingTrack: MutableLiveData<Track?> = MutableLiveData(null)
     val isPlayingState: MutableLiveData<Boolean> = MutableLiveData(false)
+    val audioSessionId: MutableLiveData<Int> = MutableLiveData(0)
 
 
     private val updateProgressRunnable = object : Runnable {
@@ -242,6 +243,7 @@ class MusicService : Service() {
                     mp.start()
                     isPlayingState.postValue(true)
                     currentTrackDuration.postValue(mp.duration ?: 0)
+                    audioSessionId.postValue(mp.audioSessionId)
                     handler.post(updateProgressRunnable)
                     updatePlaybackState() // This will trigger notification update via its own logic
                     updateMediaMetadata() // This will also trigger notification update
@@ -253,6 +255,7 @@ class MusicService : Service() {
                     currentTrack = null
                     currentPlayingTrack.postValue(null)
                     isPlayingState.postValue(false)
+                    audioSessionId.postValue(0)
                     handler.removeCallbacks(updateProgressRunnable)
                     updatePlaybackState()
                     updateMediaMetadata()
@@ -329,6 +332,7 @@ class MusicService : Service() {
         currentTrack = null
         currentPlayingTrack.postValue(null)
         isPlayingState.postValue(false)
+    audioSessionId.postValue(0)
         handler.removeCallbacks(updateProgressRunnable)
         playbackPosition.postValue(0)
         currentTrackDuration.postValue(0)
