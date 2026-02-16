@@ -20,11 +20,15 @@ public final class FragmentVisualizerBinding implements ViewBinding {
   private final FrameLayout rootView;
 
   @NonNull
+  public final View pulseGlow;
+
+  @NonNull
   public final VideoView videoViewVisualizer;
 
-  private FragmentVisualizerBinding(@NonNull FrameLayout rootView,
+  private FragmentVisualizerBinding(@NonNull FrameLayout rootView, @NonNull View pulseGlow,
       @NonNull VideoView videoViewVisualizer) {
     this.rootView = rootView;
+    this.pulseGlow = pulseGlow;
     this.videoViewVisualizer = videoViewVisualizer;
   }
 
@@ -55,13 +59,19 @@ public final class FragmentVisualizerBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.pulse_glow;
+      View pulseGlow = ViewBindings.findChildViewById(rootView, id);
+      if (pulseGlow == null) {
+        break missingId;
+      }
+
       id = R.id.video_view_visualizer;
       VideoView videoViewVisualizer = ViewBindings.findChildViewById(rootView, id);
       if (videoViewVisualizer == null) {
         break missingId;
       }
 
-      return new FragmentVisualizerBinding((FrameLayout) rootView, videoViewVisualizer);
+      return new FragmentVisualizerBinding((FrameLayout) rootView, pulseGlow, videoViewVisualizer);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

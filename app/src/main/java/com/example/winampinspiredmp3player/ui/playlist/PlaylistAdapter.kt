@@ -4,10 +4,12 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.winampinspiredmp3player.R
 import com.example.winampinspiredmp3player.data.Track
 import com.example.winampinspiredmp3player.databinding.ListItemTrackBinding
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class PlaylistAdapter(
@@ -39,10 +41,26 @@ class PlaylistAdapter(
     override fun getItemCount(): Int = tracks.size
 
     fun updateTracks(newTracks: List<Track>) {
+        val oldTracks = tracks.toList()
+        val newTrackList = newTracks.toList()
+        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = oldTracks.size
+
+            override fun getNewListSize(): Int = newTrackList.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldTracks[oldItemPosition].uri == newTrackList[newItemPosition].uri
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return oldTracks[oldItemPosition] == newTrackList[newItemPosition]
+            }
+        })
+
         tracks.clear()
-        tracks.addAll(newTracks)
+        tracks.addAll(newTrackList)
         selectedPosition = RecyclerView.NO_POSITION // Reset selection when list updates
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 
     // Call this when a track starts playing from outside (e.g. service)
@@ -89,7 +107,7 @@ class PlaylistAdapter(
             val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
             val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) -
                     TimeUnit.MINUTES.toSeconds(minutes)
-            return String.format("%02d:%02d", minutes, seconds)
+            return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
         }
     }
 }

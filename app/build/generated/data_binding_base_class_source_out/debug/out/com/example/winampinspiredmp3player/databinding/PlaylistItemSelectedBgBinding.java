@@ -4,7 +4,7 @@ package com.example.winampinspiredmp3player.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.shape;
+import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -14,15 +14,15 @@ import java.lang.Override;
 
 public final class PlaylistItemSelectedBgBinding implements ViewBinding {
   @NonNull
-  private final shape rootView;
+  private final FrameLayout rootView;
 
-  private PlaylistItemSelectedBgBinding(@NonNull shape rootView) {
+  private PlaylistItemSelectedBgBinding(@NonNull FrameLayout rootView) {
     this.rootView = rootView;
   }
 
   @Override
   @NonNull
-  public shape getRoot() {
+  public FrameLayout getRoot() {
     return rootView;
   }
 
@@ -47,6 +47,6 @@ public final class PlaylistItemSelectedBgBinding implements ViewBinding {
       throw new NullPointerException("rootView");
     }
 
-    return new PlaylistItemSelectedBgBinding((shape) rootView);
+    return new PlaylistItemSelectedBgBinding((FrameLayout) rootView);
   }
 }

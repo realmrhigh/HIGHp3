@@ -4,7 +4,7 @@ package com.example.winampinspiredmp3player.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.selector;
+import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -14,15 +14,15 @@ import java.lang.Override;
 
 public final class ListItemSelectorBinding implements ViewBinding {
   @NonNull
-  private final selector rootView;
+  private final FrameLayout rootView;
 
-  private ListItemSelectorBinding(@NonNull selector rootView) {
+  private ListItemSelectorBinding(@NonNull FrameLayout rootView) {
     this.rootView = rootView;
   }
 
   @Override
   @NonNull
-  public selector getRoot() {
+  public FrameLayout getRoot() {
     return rootView;
   }
 
@@ -47,6 +47,6 @@ public final class ListItemSelectorBinding implements ViewBinding {
       throw new NullPointerException("rootView");
     }
 
-    return new ListItemSelectorBinding((selector) rootView);
+    return new ListItemSelectorBinding((FrameLayout) rootView);
   }
 }

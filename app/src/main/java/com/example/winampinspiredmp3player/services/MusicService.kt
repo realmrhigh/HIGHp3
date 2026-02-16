@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
@@ -18,6 +19,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.MutableLiveData
@@ -242,12 +244,12 @@ class MusicService : Service() {
                     Log.d("MusicService", "MediaPlayer prepared, starting playback")
                     mp.start()
                     isPlayingState.postValue(true)
-                    currentTrackDuration.postValue(mp.duration ?: 0)
-                    audioSessionId.postValue(mp.audioSessionId)
+                    currentTrackDuration.postValue(mp.duration)
+                    this@MusicService.audioSessionId.postValue(mp.audioSessionId)
                     handler.post(updateProgressRunnable)
                     updatePlaybackState() // This will trigger notification update via its own logic
                     updateMediaMetadata() // This will also trigger notification update
-                    startForeground(NOTIFICATION_ID, buildNotification()) // Start foreground with updated notification
+                    startForegroundIfAllowed(buildNotification()) // Start foreground with updated notification
                 }
                 setOnErrorListener { mp, what, extra ->
                     Log.e("MusicService", "MediaPlayer Error: what: $what, extra: $extra")
@@ -255,11 +257,11 @@ class MusicService : Service() {
                     currentTrack = null
                     currentPlayingTrack.postValue(null)
                     isPlayingState.postValue(false)
-                    audioSessionId.postValue(0)
+                    this@MusicService.audioSessionId.postValue(0)
                     handler.removeCallbacks(updateProgressRunnable)
                     updatePlaybackState()
                     updateMediaMetadata()
-                    stopForeground(true) // Remove notification on error
+                    stopForegroundCompat(true) // Remove notification on error
                     true
                 }
                 setOnCompletionListener {
@@ -280,7 +282,7 @@ class MusicService : Service() {
             handler.removeCallbacks(updateProgressRunnable)
             updatePlaybackState()
             updateMediaMetadata()
-            stopForeground(true)
+            stopForegroundCompat(true)
         }
     }
 
@@ -302,7 +304,7 @@ class MusicService : Service() {
             handler.removeCallbacks(updateProgressRunnable)
             updatePlaybackState()
             updateMediaMetadata()
-            stopForeground(true)
+            stopForegroundCompat(true)
         }
     }
 
@@ -314,7 +316,7 @@ class MusicService : Service() {
                 isPlayingState.postValue(false)
                 handler.removeCallbacks(updateProgressRunnable)
                 updatePlaybackState() // This will trigger notification update
-                stopForeground(false) // Keep notification, but service is not foreground
+                stopForegroundCompat(false) // Keep notification, but service is not foreground
                 // notificationManager.notify(NOTIFICATION_ID, buildNotification()) // updatePlaybackState should handle this
             }
         }
@@ -338,7 +340,7 @@ class MusicService : Service() {
         currentTrackDuration.postValue(0)
         updatePlaybackState()
         updateMediaMetadata()
-        stopForeground(true) // Remove notification
+        stopForegroundCompat(true) // Remove notification
     }
 
     fun isPlaying(): Boolean {
@@ -392,7 +394,7 @@ class MusicService : Service() {
         val state: Int
         if (mediaPlayer == null) {
             state = PlaybackStateCompat.STATE_NONE
-            actions = PlaybackStateCompat.ACTION_NONE
+            actions = 0L
         } else if (mediaPlayer!!.isPlaying) {
             state = PlaybackStateCompat.STATE_PLAYING
             actions = actions or PlaybackStateCompat.ACTION_PAUSE // Can be paused
@@ -416,7 +418,7 @@ class MusicService : Service() {
         // Update notification if not stopped (foreground service handles its own notification)
         if (state != PlaybackStateCompat.STATE_STOPPED && state != PlaybackStateCompat.STATE_NONE) {
             if(mediaPlayer?.isPlaying == false) { // Only if paused
-                notificationManager.notify(NOTIFICATION_ID, buildNotification())
+                notifyIfAllowed(buildNotification())
             }
             // If playing, startForeground will be called which updates notification
         }
@@ -441,7 +443,56 @@ class MusicService : Service() {
         // Update notification with new metadata if service is in a state where notification is visible but not foreground
         // (e.g., paused). If playing, startForeground will handle it. If stopped, notification is removed.
         if (mediaPlayer?.isPlaying == false && currentTrack != null) {
-            notificationManager.notify(NOTIFICATION_ID, buildNotification())
+            notifyIfAllowed(buildNotification())
+        }
+    }
+
+    private fun canPostNotifications(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    private fun notifyIfAllowed(notification: Notification) {
+        if (!canPostNotifications()) {
+            Log.w("MusicService", "Notification permission not granted; skipping notify.")
+            return
+        }
+        try {
+            notificationManager.notify(NOTIFICATION_ID, notification)
+        } catch (securityException: SecurityException) {
+            Log.w("MusicService", "Unable to post notification", securityException)
+        }
+    }
+
+    private fun startForegroundIfAllowed(notification: Notification) {
+        if (!canPostNotifications()) {
+            Log.w("MusicService", "Notification permission not granted; skipping foreground notification.")
+            return
+        }
+        try {
+            startForeground(NOTIFICATION_ID, notification)
+        } catch (securityException: SecurityException) {
+            Log.w("MusicService", "Unable to start foreground with notification", securityException)
+        }
+    }
+
+    private fun stopForegroundCompat(removeNotification: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val flag = if (removeNotification) {
+                Service.STOP_FOREGROUND_REMOVE
+            } else {
+                Service.STOP_FOREGROUND_DETACH
+            }
+            stopForeground(flag)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(removeNotification)
         }
     }
 

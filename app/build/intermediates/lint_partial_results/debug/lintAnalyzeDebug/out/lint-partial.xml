@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.10.0" type="partial_results">
+    <map id="NotificationPermission">
+        <entry
+            name="source"
+            boolean="true"/>
+    </map>
+    <map id="UnsafeIntentLaunch">
+            <map id="unprotected">
+                <entry
+                    name="com.example.winampinspiredmp3player.MainActivity"
+                    boolean="true"/>
+            </map>
+    </map>
+    <map id="UnusedResources">
+        <location id="R.color.purple_200"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/colors.xml"
+            line="3"
+            column="12"
+            startOffset="62"
+            endLine="3"
+            endColumn="29"
+            endOffset="79"/>
+        <location id="R.drawable.volsliderbar"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/volsliderbar.png"/>
+        <location id="R.drawable.volsliderthumb"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/volsliderthumb.png"/>
+        <location id="R.layout.list_item_selector"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/list_item_selector.xml"
+            line="2"
+            column="1"
+            startOffset="39"
+            endLine="11"
+            endColumn="15"
+            endOffset="369"/>
+        <location id="R.layout.playlist_item_selected_bg"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/layout/playlist_item_selected_bg.xml"
+            line="2"
+            column="1"
+            startOffset="39"
+            endLine="11"
+            endColumn="15"
+            endOffset="376"/>
+        <entry
+            name="model"
+            string="attr[selectableItemBackgroundBorderless(R),colorPrimaryVariant(R)],color[winamp_background_dark(U),winamp_playlist_item_selected_bg(U),winamp_glow_green_soft(U),winamp_glow_green(U),winamp_text_green(U),winamp_tab_unselected_gray(U),winamp_playlist_background(U),winamp_playlist_text_normal(U),winamp_border_black(U),purple_200(D),purple_500(U),purple_700(U),teal_200(U),teal_700(U),black(U),white(U),winamp_playlist_text_selected(U)],drawable[back(U),eject(U),ic_launcher_background(U),ic_launcher_foreground(U),ic_music_note(U),ic_pause(U),pause(U),ic_play_arrow(U),play(U),ic_skip_next(U),skip(U),ic_skip_previous(U),list_item_selector(U),playlist_item_selected_bg(U),stop(U),visualizer_glow(U),volsliderbar(D),volsliderthumb(D),winamp_btn_pause(U),winamp_btn_play(U)],id[tab_layout(U),view_pager(D),tv_current_track_info(U),sb_track_progress(U),layout_controls(U),btn_previous_track(D),btn_play_pause(D),btn_next_track(D),btn_stop_track(D),btn_eject(D),sb_volume_control(D),btn_scan_music(U),rv_playlist(D),video_view_visualizer(D),pulse_glow(D),tv_track_title(U),tv_track_artist(U),tv_track_duration(U)],layout[activity_main(U),fragment_player(U),fragment_playlist(U),fragment_visualizer(U),list_item_selector(D),list_item_track(U),playlist_item_selected_bg(D)],mipmap[ic_launcher(U),ic_launcher_round(U)],raw[visualization_loop(U)],string[app_name(U)],style[Theme_WinampInspiredMP3Player(U),Theme_MaterialComponents_DayNight_DarkActionBar(R)];15^2,18^19,1a^1b,1c^1d,1e^13,1f^20,20^3,22^4^5,25^19,26^1b,39^2^6^7^27,3a^2^6^29^2a^13^26^1d^21^14^2b,3b^8^0^14^32,3c^2^22,3d^1f,3e^1f^9^38^36^37^a,3f^20,40^15^16,41^15^16,44^45^c^d^11^e^f^10^1;;;"/>
+    </map>
+
+</incidents>

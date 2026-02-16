@@ -96,19 +96,24 @@ class PlaylistFragment : Fragment() {
     }
 
     private fun checkAndRequestPermission() {
+        val permission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
-                Manifest.permission.READ_MEDIA_AUDIO
+                permission
             ) == PackageManager.PERMISSION_GRANTED -> {
                 scanForMusicFiles()
             }
-            shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_AUDIO) -> {
+            shouldShowRequestPermissionRationale(permission) -> {
                 Toast.makeText(requireContext(), "Permission needed to access music files.", Toast.LENGTH_LONG).show()
-                requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_AUDIO)
+                requestPermissionLauncher.launch(permission)
             }
             else -> {
-                requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_AUDIO)
+                requestPermissionLauncher.launch(permission)
             }
         }
     }

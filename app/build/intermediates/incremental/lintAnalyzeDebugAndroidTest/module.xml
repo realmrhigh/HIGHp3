@@ -1,0 +1,19 @@
+<lint-module
+    format="1"
+    dir="/Users/stantonhigh/Documents/highp3/HIGHp3/app"
+    name=":app"
+    type="APP"
+    maven="Winamp Inspired MP3 Player:app:unspecified"
+    agpVersion="8.10.0"
+    buildFolder="build"
+    bootClassPath="/Users/stantonhigh/Library/Android/sdk/platforms/android-34/android.jar:/Users/stantonhigh/Library/Android/sdk/build-tools/35.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-34"
+    neverShrinking="true">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="debug"/>
+</lint-module>

@@ -1,7 +1,12 @@
 package com.example.winampinspiredmp3player
 
-import androidx.appcompat.app.AppCompatActivity
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.example.winampinspiredmp3player.ui.ViewPagerAdapter
 import com.google.android.material.tabs.TabLayout
@@ -11,6 +16,8 @@ import com.example.winampinspiredmp3player.databinding.ActivityMainBinding // Im
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding // Declare binding variable
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +42,21 @@ class MainActivity : AppCompatActivity() {
                 else -> null
             }
         }.attach()
+
+        requestNotificationPermissionIfNeeded()
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!granted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 
     // Public method to switch tabs

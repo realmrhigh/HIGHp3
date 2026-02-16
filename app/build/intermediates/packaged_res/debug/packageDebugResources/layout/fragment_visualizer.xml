@@ -12,4 +12,12 @@
         android:layout_height="match_parent"
         android:layout_gravity="center" />
 
+    <View
+        android:id="@+id/pulse_glow"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_gravity="center"
+        android:alpha="0.18"
+        android:background="@drawable/visualizer_glow" />
+
 </FrameLayout>

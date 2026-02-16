@@ -4,32 +4,101 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/winamp_playlist_background"
-    tools:context=".ui.playlist.PlaylistFragment">
+    android:background="@color/winamp_background_dark"
+    tools:context=".ui.player.PlayerFragment">
 
-    <ImageButton
-        android:id="@+id/btn_scan_music"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/eject"
-        android:background="@android:color/transparent"
-        android:foreground="?attr/selectableItemBackgroundBorderless"
-        android:padding="8dp"
-        android:contentDescription="Scan for Music"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_playlist"
+    <TextView
+        android:id="@+id/tv_current_track_info"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/btn_scan_music"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="No track playing"
+        android:textColor="@color/winamp_text_green"
+        android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/winamp_playlist_background"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <SeekBar
+        android:id="@+id/sb_track_progress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_current_track_info"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/layout_controls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/sb_track_progress"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btn_previous_track"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Previous"
+            android:padding="6dp"
+            android:src="@drawable/back" />
+
+        <ImageButton
+            android:id="@+id/btn_play_pause"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Play/Pause"
+            android:padding="6dp"
+            android:src="@drawable/winamp_btn_play" />
+
+        <ImageButton
+            android:id="@+id/btn_next_track"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Next"
+            android:padding="6dp"
+            android:src="@drawable/skip" />
+
+        <ImageButton
+            android:id="@+id/btn_stop_track"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Stop"
+            android:padding="6dp"
+            android:src="@drawable/stop" />
+
+        <ImageButton
+            android:id="@+id/btn_eject"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Eject"
+            android:padding="6dp"
+            android:src="@drawable/eject" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/sb_volume_control"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintTop_toBottomOf="@id/layout_controls"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
