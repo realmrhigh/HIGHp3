@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
                 0 -> "Player"
                 1 -> "Playlist"
                 2 -> "Visualizer"
+                3 -> "Settings"
                 else -> null
             }
         }.attach()

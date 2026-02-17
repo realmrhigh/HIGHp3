@@ -3010,6 +3010,7 @@ drawable ic_play_arrow
 drawable ic_search_black_24
 drawable ic_skip_next
 drawable ic_skip_previous
+drawable info_section_bg
 drawable list_item_selector
 drawable m3_appbar_background
 drawable m3_avd_hide_password
@@ -3210,6 +3211,7 @@ id cache_measures
 id callMeasure
 id cancel_action
 id cancel_button
+id card_glow_settings
 id carryVelocity
 id center
 id centerCrop
@@ -3547,6 +3549,7 @@ id stretch
 id submenuarrow
 id submit_area
 id supportScrollUp
+id switch_glow
 id tabMode
 id tab_layout
 id tag_accessibility_actions
@@ -3595,6 +3598,7 @@ id transition_scene_layoutid_cache
 id transition_transform
 id triangle
 id tv_current_track_info
+id tv_settings_title
 id tv_track_artist
 id tv_track_duration
 id tv_track_title
@@ -3756,6 +3760,7 @@ layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout fragment_player
 layout fragment_playlist
+layout fragment_settings
 layout fragment_visualizer
 layout list_item_selector
 layout list_item_track

@@ -28,6 +28,11 @@ class PlayerFragment : Fragment() {
     private var isBound: Boolean = false
     private lateinit var audioManager: AudioManager
 
+    companion object {
+        private const val SETTINGS_PREFS_NAME = "AppSettings"
+        private const val GLOW_EFFECT_KEY = "glow_effect_enabled"
+    }
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             Log.d("PlayerFragment", "Service Connected")
@@ -64,6 +69,7 @@ class PlayerFragment : Fragment() {
         setupClickListeners()
         setupTrackProgressSeekBar()
         setupVolumeControls()
+        applyGlowSetting()
     }
 
     private fun setupClickListeners() {
@@ -218,5 +224,13 @@ class PlayerFragment : Fragment() {
         }
         _binding = null
         Log.d("PlayerFragment", "onDestroyView called, _binding set to null")
+    }
+
+    private fun applyGlowSetting() {
+        if (_binding == null) return
+        val prefs = requireContext().getSharedPreferences(SETTINGS_PREFS_NAME, Context.MODE_PRIVATE)
+        val isGlowEnabled = prefs.getBoolean(GLOW_EFFECT_KEY, true) // Default enabled
+        binding.albumGlow.visibility = if (isGlowEnabled) View.VISIBLE else View.GONE
+        Log.d("PlayerFragment", "Glow visibility set to: ${if (isGlowEnabled) "VISIBLE" else "GONE"}")
     }
 }

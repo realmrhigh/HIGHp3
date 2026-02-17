@@ -23,6 +23,8 @@ import com.example.winampinspiredmp3player.MainActivity
 import com.example.winampinspiredmp3player.data.Track
 import com.example.winampinspiredmp3player.databinding.FragmentPlaylistBinding
 import com.example.winampinspiredmp3player.services.MusicService
+import org.json.JSONArray
+import org.json.JSONObject
 
 class PlaylistFragment : Fragment() {
 
@@ -35,6 +37,11 @@ class PlaylistFragment : Fragment() {
     // Service related variables
     private var musicService: MusicService? = null
     private var isBound: Boolean = false
+
+    companion object {
+        private const val PREFS_NAME = "PlaylistPrefs"
+        private const val CACHED_PLAYLIST_KEY = "cached_playlist"
+    }
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -71,6 +78,10 @@ class PlaylistFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView() // Initialize adapter here
+        
+        // Load cached playlist on first view
+        loadCachedPlaylist()
+        
         binding.btnScanMusic.setOnClickListener {
             checkAndRequestPermission()
         }
@@ -173,7 +184,9 @@ class PlaylistFragment : Fragment() {
         // Update the fragment's own list (if needed for other purposes, though adapter now holds the primary list for click handling)
         musicTracks.clear()
         musicTracks.addAll(currentTracks)
-
+        
+        // Save to persistent cache
+        savePlaylistToCache(currentTracks)
 
         if (currentTracks.isEmpty()) {
             Toast.makeText(requireContext(), "No music files found.", Toast.LENGTH_SHORT).show()
@@ -204,5 +217,58 @@ class PlaylistFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         Log.d("PlaylistFragment", "onDestroyView called, _binding set to null")
+    }
+
+    private fun savePlaylistToCache(tracks: List<Track>) {
+        try {
+            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val jsonArray = JSONArray()
+            
+            for (track in tracks) {
+                val json = JSONObject()
+                json.put("uri", track.uri.toString())
+                json.put("title", track.title)
+                json.put("artist", track.artist)
+                json.put("duration", track.duration)
+                json.put("fileName", track.fileName)
+                jsonArray.put(json)
+            }
+            
+            prefs.edit().putString(CACHED_PLAYLIST_KEY, jsonArray.toString()).apply()
+            Log.d("PlaylistFragment", "Saved ${tracks.size} tracks to cache")
+        } catch (e: Exception) {
+            Log.e("PlaylistFragment", "Error saving playlist to cache", e)
+        }
+    }
+
+    private fun loadCachedPlaylist() {
+        try {
+            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val cachedJson = prefs.getString(CACHED_PLAYLIST_KEY, null) ?: return
+            
+            val tracks = mutableListOf<Track>()
+            val jsonArray = JSONArray(cachedJson)
+            
+            for (i in 0 until jsonArray.length()) {
+                val json = jsonArray.getJSONObject(i)
+                val track = Track(
+                    uri = android.net.Uri.parse(json.getString("uri")),
+                    title = json.optString("title"),
+                    artist = json.optString("artist"),
+                    duration = json.getLong("duration"),
+                    fileName = json.getString("fileName")
+                )
+                tracks.add(track)
+            }
+            
+            if (tracks.isNotEmpty()) {
+                playlistAdapter.updateTracks(tracks)
+                musicTracks.clear()
+                musicTracks.addAll(tracks)
+                Log.d("PlaylistFragment", "Loaded ${tracks.size} tracks from cache")
+            }
+        } catch (e: Exception) {
+            Log.e("PlaylistFragment", "Error loading cached playlist", e)
+        }
     }
 }

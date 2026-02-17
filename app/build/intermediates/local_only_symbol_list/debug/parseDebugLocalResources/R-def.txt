@@ -47,6 +47,7 @@ drawable ic_pause
 drawable ic_play_arrow
 drawable ic_skip_next
 drawable ic_skip_previous
+drawable info_section_bg
 drawable list_item_selector
 drawable pause
 drawable play
@@ -68,6 +69,7 @@ id btn_play_pause
 id btn_previous_track
 id btn_scan_music
 id btn_stop_track
+id card_glow_settings
 id divider_scan
 id iv_album_art
 id iv_track_icon
@@ -78,8 +80,10 @@ id rv_playlist
 id sb_track_progress
 id sb_volume_control
 id scan_bar
+id switch_glow
 id tab_layout
 id tv_current_track_info
+id tv_settings_title
 id tv_track_artist
 id tv_track_duration
 id tv_track_title
@@ -88,6 +92,7 @@ id view_pager
 layout activity_main
 layout fragment_player
 layout fragment_playlist
+layout fragment_settings
 layout fragment_visualizer
 layout list_item_selector
 layout list_item_track
